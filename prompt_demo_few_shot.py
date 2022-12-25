@@ -48,7 +48,7 @@ if few_shot:
                                     also_sample_dev=True,
                                     num_examples_per_label_dev=200)
     train_dataset, dev_dateset = fewshot_sampler(dataset["train"],dataset["dev"])
-
+    
 
 plm, tokenizer, model_config, WrapperClass = load_plm("bert", "bert-base-chinese")
 
