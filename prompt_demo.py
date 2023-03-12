@@ -13,7 +13,7 @@ from transformers import  AdamW, get_linear_schedule_with_warmup
 do_train = True
 do_test = True
 data_type = "jaccard"
-few_shot = True
+few_shot = False
 def get_data(input_file):
     data_type = ["train", "dev", "test"]
     res = {}

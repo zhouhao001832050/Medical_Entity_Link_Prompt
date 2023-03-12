@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import torch
+import argparse
 from openprompt.data_utils import InputExample
 from openprompt.prompts import ManualVerbalizer
 from openprompt.prompts import ManualTemplate
@@ -11,9 +12,17 @@ from openprompt import PromptDataLoader
 from openprompt.data_utils import FewShotSampler
 from transformers import  AdamW, get_linear_schedule_with_warmup
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--do_train', action="store_true", help='train or not')
+parser.add_argument('--do_test', action="store_true", help='test or not')
+parser.add_argument('--use_fewshot', action="store_true", type="str", help="use fewshots")
+parser.add_argument('data_type', default="bm25", type="str", help="dataset will be used")
+
+args = parser.parse_args()
+
 do_train = True
 do_test = True
-data_type = "NormLeven"
+data_type = args.data_type
 few_shot = True
 
 def get_data(input_file):
@@ -43,7 +52,7 @@ base_dir = f"/home/haozhou/Documents/OpenPrompt/datasets/{data_type}"
 
 dataset = get_data(base_dir)
 
-if few_shot:
+if args.few_shot:
     fewshot_sampler = FewShotSampler(
                                     num_examples_per_label=1600,
                                     also_sample_dev=True,
@@ -132,7 +141,7 @@ output_dir = f"/home/haozhou/Documents/OpenPrompt/outputs/{data_type}"
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
-if do_train:
+if args.do_train:
     for epoch in range(10):
         tot_loss = 0
         for step, inputs in enumerate(train_dataloader):
@@ -164,7 +173,7 @@ allpreds = []
 alllabels = []
 # prompt_model = PromptForClassification(plm=plm,template=mytemplate, verbalizer=myverbalizer, freeze_plm=False)
 
-if do_test:
+if args.do_test:
     # prompt_model.from_pretrained(output_dir, do_lower_case=True)
     model_path = os.path.join(output_dir, "best-model.bin")
     # state = torch.load(model_path)
