@@ -15,6 +15,7 @@ do_train = True
 do_test = True
 data_type = "NormLeven"
 few_shot = True
+
 def get_data(input_file):
     data_type = ["train", "dev", "test"]
     res = {}
@@ -69,7 +70,6 @@ mytemplate = ManualTemplate(
 
 # wrapped_example = mytemplate.wrap_one_example(dataset['train'][0])
 wrapped_example = mytemplate.wrap_one_example(train_dataset[0])
-
 
 
 wrapped_tokenizer = WrapperClass(max_seq_length=128, decoder_max_length =3, tokenizer=tokenizer, truncate_method="head")
