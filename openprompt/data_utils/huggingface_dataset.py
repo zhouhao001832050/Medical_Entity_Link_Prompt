@@ -18,9 +18,9 @@ This file contains the logic for loading data for all FewGLUE tasks.
 from openprompt.data_utils.utils import InputExample
 
 from openprompt.data_utils.data_processor import DataProcessor
-from dataset import load_dataset
+from datasets import load_dataset
 from openprompt.utils.logging import logger
-from dataset import load_from_disk
+from datasets import load_from_disk
 import os
 
 HUGGING_FACE_SCRIPTS = 'super_glue' # if you can not connect huggingface in your machine, you can download the scripts manually and change this line.

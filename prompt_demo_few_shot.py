@@ -15,8 +15,8 @@ from transformers import  AdamW, get_linear_schedule_with_warmup
 parser = argparse.ArgumentParser()
 parser.add_argument('--do_train', action="store_true", help='train or not')
 parser.add_argument('--do_test', action="store_true", help='test or not')
-parser.add_argument('--use_fewshot', action="store_true", type="str", help="use fewshots")
-parser.add_argument('data_type', default="bm25", type="str", help="dataset will be used")
+parser.add_argument('--use_fewshot', action="store_true", help="use fewshots")
+parser.add_argument('--data_type', default="bm25", type=str, help="dataset will be used")
 
 args = parser.parse_args()
 
@@ -47,17 +47,18 @@ classes = [ # There are two classes in Sentiment Analysis, one for negative and 
 ]
 
 
-base_dir = f"/home/haozhou/Documents/OpenPrompt/datasets/{data_type}"
+base_dir = f"/home/haozhou/Documents/Medical_Entity_Link_Prompt/datasets/{data_type}/fewshots"
 
 
 dataset = get_data(base_dir)
 
-if args.few_shot:
-    fewshot_sampler = FewShotSampler(
-                                    num_examples_per_label=1600,
-                                    also_sample_dev=True,
-                                    num_examples_per_label_dev=200)
-    train_dataset, dev_dateset = fewshot_sampler(dataset["train"],dataset["dev"])
+# wait to be changed
+# if args.use_fewshot:
+#     fewshot_sampler = FewShotSampler(
+#                                     num_examples_per_label=1600,
+#                                     also_sample_dev=True,
+#                                     num_examples_per_label_dev=200)
+#     train_dataset, dev_dateset = fewshot_sampler(dataset["train"],dataset["dev"])
     
 
 plm, tokenizer, model_config, WrapperClass = load_plm("bert", "bert-base-chinese")
@@ -78,12 +79,12 @@ mytemplate = ManualTemplate(
 # )
 
 # wrapped_example = mytemplate.wrap_one_example(dataset['train'][0])
-wrapped_example = mytemplate.wrap_one_example(train_dataset[0])
+# wrapped_example = mytemplate.wrap_one_example(train_dataset[0])
 
 
 wrapped_tokenizer = WrapperClass(max_seq_length=128, decoder_max_length =3, tokenizer=tokenizer, truncate_method="head")
 
-tokenized_example = wrapped_tokenizer.tokenize_one_example(wrapped_example, teacher_forcing=False)
+# tokenized_example = wrapped_tokenizer.tokenize_one_example(wrapped_example, teacher_forcing=False)
 
 # print(tokenizer.convert_ids_to_tokens(tokenized_example['input_ids']))
 # print(tokenizer.convert_ids_to_tokens(tokenized_example['decoder_input_ids']))
@@ -97,9 +98,9 @@ tokenized_example = wrapped_tokenizer.tokenize_one_example(wrapped_example, teac
 #         model_inputs[split].append(tokenized_example)
 
 
-train_dataloader = PromptDataLoader(dataset=train_dataset, template=mytemplate, tokenizer=tokenizer,
+train_dataloader = PromptDataLoader(dataset=dataset["train"], template=mytemplate, tokenizer=tokenizer,
     tokenizer_wrapper_class=WrapperClass, max_seq_length=256, decoder_max_length=3,
-    batch_size=36,shuffle=True, teacher_forcing=False, predict_eos_token=False,
+    batch_size=36,shuffle=False, teacher_forcing=False, predict_eos_token=False,
     truncate_method="head")
 
 
@@ -119,7 +120,7 @@ print(myverbalizer.process_logits(logits)) # see what the verbalizer do
 # model which take the batched data from the PromptDataLoader and produce a class-wise logits
 
 from openprompt import PromptForClassification
-
+    
 use_cuda = True
 prompt_model = PromptForClassification(plm=plm,template=mytemplate, verbalizer=myverbalizer, freeze_plm=False)
 if use_cuda:
@@ -137,7 +138,7 @@ optimizer_grouped_parameters = [
 
 optimizer = AdamW(optimizer_grouped_parameters, lr=1e-4)
 
-output_dir = f"/home/haozhou/Documents/OpenPrompt/outputs/{data_type}"
+output_dir = f"/home/haozhou/Documents/Medical_Entity_Link_Prompt/outputs/{data_type}"
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
@@ -171,7 +172,7 @@ validation_dataloader = PromptDataLoader(dataset=dataset["test"], template=mytem
     truncate_method="head")
 allpreds = []
 alllabels = []
-# prompt_model = PromptForClassification(plm=plm,template=mytemplate, verbalizer=myverbalizer, freeze_plm=False)
+# prompt_model = PromptForClassification(plm=plm,template=mytemplate, verbalizer=myverbalizer, freeze_plm=True)
 
 if args.do_test:
     # prompt_model.from_pretrained(output_dir, do_lower_case=True)
@@ -191,3 +192,5 @@ if args.do_test:
 
     acc = sum([int(i==j) for i,j in zip(allpreds, alllabels)])/len(allpreds)
     print(acc)
+    with open(f"outputs/{data_type}/result.txt","w") as f:
+        f.write(str(acc))
