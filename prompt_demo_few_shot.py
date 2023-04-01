@@ -10,7 +10,7 @@ from openprompt.plms import load_plm
 from openprompt import PromptForClassification
 from openprompt import PromptDataLoader
 from openprompt.data_utils import FewShotSampler
-from transformers import  AdamW, get_linear_schedule_with_warmup
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--do_train', action="store_true", help='train or not')

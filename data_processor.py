@@ -9,7 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 from multiprocessing import Pool, cpu_count
-
+from random import *
 
 class DataProcessor:
     def __init__(self, data_dir):
@@ -182,6 +182,47 @@ class DataProcessor:
         return dp[-1][-1]
 
 
+    # def get_data_format(self, input_path, mode, data_type, prosessor_name):
+    #     df = pd.read_excel(input_path)
+    #     left, original_right = df["原始词"].to_list(),df["标准词"].to_list()
+    #     right = []
+    #     for r in original_right:
+    #         if r not in right:
+    #             right.append(r)
+    #     data = list(zip(left, original_right))
+    #     length = len(data)
+    #     with open(f"datasets/{processor_name}/{data_type}/{mode}.json", "w") as f_w:
+    #         for i in tqdm(range(length)):
+    #             left = data[i][0]
+    #             right_correct = data[i][1]
+    #             if left == "经右胸微创房间隔缺损封堵术":
+    #                 print(right_correct)
+    #             candidates = []
+    #             for r in right:
+    #                 if r != right_correct:
+    #                     # tempt = self.getDiceSimilarity(left, r)
+    #                     tempt = self.process_method[str(prosessor_name)](left, r)
+    #                     candidates.append((r, tempt))
+    #             ranked = sorted(candidates, key=lambda x: x[1], reverse = True)[:5]
+    #             if prosessor_name == "MiniEditDistance":
+    #                 ranked = sorted(candidates, key=lambda x: x[1], reverse = False)[:5]
+
+    #             if data_type == "fewshots":
+    #                 ranked = sorted(candidates, key=lambda x: x[1], reverse = True)[:1]
+    #                 if prosessor_name == "MiniEditDistance":
+    #                     ranked = sorted(candidates, key=lambda x: x[1], reverse = False)[:1]
+ 
+    #             all_sample = [(left, data[i][1],1)] + [(left,x[0],0) for x in ranked]
+    #             if mode in ["dev", "test"]:
+    #                 all_sample = [(left, data[i][1],1)]
+    #             for element in all_sample:
+    #                 corpus, entity, label = element[0], element[1], element[2]
+    #                 d = {}
+    #                 d["corpus"] = corpus
+    #                 d["entity"] = entity
+    #                 d["label"] = label
+    #                 f_w.write(json.dumps(d, ensure_ascii=False) + "\n")
+
     def get_data_format(self, input_path, mode, data_type, prosessor_name):
         df = pd.read_excel(input_path)
         left, original_right = df["原始词"].to_list(),df["标准词"].to_list()
@@ -195,8 +236,8 @@ class DataProcessor:
             for i in tqdm(range(length)):
                 left = data[i][0]
                 right_correct = data[i][1]
-                if left == "经右胸微创房间隔缺损封堵术":
-                    print(right_correct)
+                # if left == "经右胸微创房间隔缺损封堵术":
+                #     print(right_correct)
                 candidates = []
                 for r in right:
                     if r != right_correct:
@@ -211,7 +252,7 @@ class DataProcessor:
                     ranked = sorted(candidates, key=lambda x: x[1], reverse = True)[:1]
                     if prosessor_name == "MiniEditDistance":
                         ranked = sorted(candidates, key=lambda x: x[1], reverse = False)[:1]
-
+ 
                 all_sample = [(left, data[i][1],1)] + [(left,x[0],0) for x in ranked]
                 if mode in ["dev", "test"]:
                     all_sample = [(left, data[i][1],1)]
@@ -222,6 +263,61 @@ class DataProcessor:
                     d["entity"] = entity
                     d["label"] = label
                     f_w.write(json.dumps(d, ensure_ascii=False) + "\n")
+ 
+    def get_data_fewshots_format(self, input_path, mode, data_type, prosessor_name):
+        df = pd.read_excel(input_path)
+        left, original_right = df["原始词"].to_list(),df["标准词"].to_list()
+        right = []
+        for r in original_right:
+            if r not in right:
+                right.append(r)
+        data = list(zip(left, original_right))
+        length = len(data)
+        all = []
+        with open(f"datasets/{processor_name}/{data_type}/{mode}.json", "w") as f_w:
+            for i in tqdm(range(length)):
+                left = data[i][0]
+                right_correct = data[i][1]
+
+                candidates = []
+                for r in right:
+                    if r != right_correct:
+                        # tempt = self.getDiceSimilarity(left, r)
+                        tempt = self.process_method[str(prosessor_name)](left, r)
+                        candidates.append((r, tempt))
+                ranked = sorted(candidates, key=lambda x: x[1], reverse = True)[:5]
+                if prosessor_name == "MiniEditDistance":
+                    ranked = sorted(candidates, key=lambda x: x[1], reverse = False)[:5]
+
+                # if data_type == "fewshots":
+                #     ranked = sorted(candidates, key=lambda x: x[1], reverse = True)[:1]
+                #     if prosessor_name == "MiniEditDistance":
+                #         ranked = sorted(candidates, key=lambda x: x[1], reverse = False)[:1]
+ 
+                all_sample = [(left, data[i][1],1)] + [(left,x[0],0) for x in ranked]
+                all.append(all_sample)
+                if mode in ["dev", "test"]:
+                    all_sample = [(left, data[i][1],1)]
+                
+                    for element in all_sample:
+                        corpus, entity, label = element[0], element[1], element[2]
+                        d = {}
+                        d["corpus"] = corpus
+                        d["entity"] = entity
+                        d["label"] = label
+                        f_w.write(json.dumps(d, ensure_ascii=False) + "\n")
+            train_samples = sample(all, int(len(all)/10))
+            
+            for train_sample in train_samples:
+                for element in train_sample:
+                    corpus, entity, label = element[0], element[1], element[2]
+                    d = {}
+                    d["corpus"] = corpus
+                    d["entity"] = entity
+                    d["label"] = label
+                    if mode == "train":
+                        f_w.write(json.dumps(d, ensure_ascii=False) + "\n")
+
 
 
 
@@ -243,9 +339,14 @@ if __name__ == "__main__":
 
     processor = DataProcessor(data_dir="")
     for processor_name in processors:
-        processor.get_data_format(train_data_dir, "train", "fullshots", processor_name)
-        processor.get_data_format(dev_data_dir, "dev", "fullshots", processor_name)
-        processor.get_data_format(test_data_dir, "test", "fullshots", processor_name)
-        processor.get_data_format(train_data_dir, "train", "fewshots", processor_name)
-        processor.get_data_format(dev_data_dir, "dev", "fewshots", processor_name)
-        processor.get_data_format(test_data_dir, "test", "fewshots", processor_name)
+        # processor.get_data_format(train_data_dir, "train", "fullshots", processor_name)
+        # processor.get_data_format(dev_data_dir, "dev", "fullshots", processor_name)
+        # processor.get_data_format(test_data_dir, "test", "fullshots", processor_name)
+        # processor.get_data_format(train_data_dir, "train", "fewshots", processor_name)
+        # processor.get_data_format(dev_data_dir, "dev", "fewshots", processor_name)
+        # processor.get_data_format(test_data_dir, "test", "fewshots", processor_name)
+        processor.get_data_fewshots_format(train_data_dir, "train", "fewshots", processor_name)
+
+        # processor.get_data_fewshots_format(dev_data_dir, "dev", "fewshots", processor_name)
+
+        # processor.get_data_fewshots_format(test_data_dir, "test", "fewshots", processor_name)
