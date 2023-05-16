@@ -302,7 +302,7 @@ class DataProcessor:
                     for element in all_sample:
                         corpus, entity, label = element[0], element[1], element[2]
                         d = {}
-                        d["corpus"] = corpus
+                        d["corpus"] = corpus 
                         d["entity"] = entity
                         d["label"] = label
                         f_w.write(json.dumps(d, ensure_ascii=False) + "\n")
@@ -345,8 +345,8 @@ if __name__ == "__main__":
         # processor.get_data_format(train_data_dir, "train", "fewshots", processor_name)
         # processor.get_data_format(dev_data_dir, "dev", "fewshots", processor_name)
         # processor.get_data_format(test_data_dir, "test", "fewshots", processor_name)
-        processor.get_data_fewshots_format(train_data_dir, "train", "fewshots", processor_name)
+        # processor.get_data_fewshots_format(train_data_dir, "train", "fewshots", processor_name)
 
-        # processor.get_data_fewshots_format(dev_data_dir, "dev", "fewshots", processor_name)
+        processor.get_data_fewshots_format(dev_data_dir, "dev", "fewshots", processor_name)
 
-        # processor.get_data_fewshots_format(test_data_dir, "test", "fewshots", processor_name)
+        processor.get_data_fewshots_format(test_data_dir, "test", "fewshots", processor_name)
