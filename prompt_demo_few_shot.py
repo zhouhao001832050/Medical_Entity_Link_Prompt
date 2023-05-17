@@ -110,12 +110,14 @@ from openprompt.prompts import ManualVerbalizer
 myverbalizer = ManualVerbalizer(tokenizer, num_classes=2,
                         label_words=[["yes"], ["no"]])
 
-
+print("==============================")
 print(myverbalizer.label_words_ids)
-logits = torch.randn(2,len(tokenizer)) # creating a pseudo output from the plm, and
+logits = torch.randn(4,len(tokenizer)) # creating a pseudo output from the plm, and
+print(logits)
 print(myverbalizer.process_logits(logits)) # see what the verbalizer do
+print("==============================")
 
-
+sys.exit()
 # Although you can manually combine the plm, template, verbalizer together, we provide a pipeline
 # model which take the batched data from the PromptDataLoader and produce a class-wise logits
 
