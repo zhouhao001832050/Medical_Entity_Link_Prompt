@@ -124,6 +124,14 @@ class PromptDataLoader(object):
                 if self.verbalizer is not None and hasattr(self.verbalizer, 'wrap_one_example'): # some verbalizer may also process the example.
                     example = self.verbalizer.wrap_one_example(example)
                 wrapped_example = self.template.wrap_one_example(example)
+                # [[{'text': '左侧甲状旁腺肿瘤切除术', 'loss_ids': 0, 'shortenable_ids': 1}, 
+                # {'text': ' is the same as', 'loss_ids': 0, 'shortenable_ids': 0}, 
+                # {'text': ' 甲状旁腺病损切除术', 'loss_ids': 0, 'shortenable_ids': 1}, 
+                # {'text': '? Is it correct?', 'loss_ids': 0, 'shortenable_ids': 0}, 
+                # {'text': '<mask>', 'loss_ids': 1, 'shortenable_ids': 0}, 
+                # {'text': '.', 'loss_ids': 0, 'shortenable_ids': 0}], 
+                # {'guid': 0, 'label': 1}]
+                import pdb;pdb.set_trace()
                 self.wrapped_dataset.append(wrapped_example)
         else:
             raise NotImplementedError
@@ -207,6 +215,7 @@ class PromptModel(nn.Module):
         Args:
             batch (:obj:`Union[Dict, InputFeatures]`): The input features of batchified data sequences.
         """
+
         batch = self.template.process_batch(batch)
         input_batch = {key: batch[key] for key in batch if key in self.forward_keys}
         outputs = self.plm(**input_batch, output_hidden_states=True)

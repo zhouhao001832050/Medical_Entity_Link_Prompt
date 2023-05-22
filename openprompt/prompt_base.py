@@ -102,6 +102,7 @@ class Template(nn.Module):
             text = text.copy()
 
         for i, d in enumerate(text):
+            # import pdb;pdb.set_trace()
             if not callable(d.get("post_processing")):
                 d["post_processing"] = eval(d.get("post_processing", 'lambda x:x'))
             if 'placeholder' in d:
@@ -205,7 +206,7 @@ class Template(nn.Module):
             raise ValueError("template text has not been initialized")
         if isinstance(example, InputExample):
             text = self.incorporate_text_example(example)
-
+            # import pdb;pdb.set_trace()
             not_empty_keys = example.keys()
             for placeholder_token in self.placeholder_mapping:
                 not_empty_keys.remove(self.placeholder_mapping[placeholder_token]) # placeholder has been processed, remove
