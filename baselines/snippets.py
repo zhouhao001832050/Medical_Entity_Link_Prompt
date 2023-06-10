@@ -63,4 +63,34 @@ def lowercase_and_normalize(text, never_split=()):
     text = ''.join([ch for ch in text if unicodedata.category(ch) != 'Mn'])
     return text
 
+def text_segmentate(text, maxlen, seps='\n', strips=None, truncate=True):
+    """将文本按照标点符号划分为若干个短句
+       
+       :param text: 待划分的句子
+       :param maxlen: int, 截断长度
+       :param seps: 分隔符
+       :param strips: ''.strip()
+       :param truncate: True表示标点符号切分后仍然超长时, 按照maxlen硬截断分成若干个短句
+       :return: List[str], 划分后的句子列表
+    """
+    text = text.strip().strip(strips)
+    if seps and len(text) > maxlen:
+        pieces = text.split(seps[0])
+        text, texts = '', []
+        for i, p in enumerate(pieces):
+            if text and p and len(text) + len(p) > maxlen - 1:
+                texts.extend(text_segmentate(text, maxlen, seps[1:], strips, truncate))
+                text = ''
+            if i + 1 == len(pieces):
+                text = text + p
+            else:
+                text = text + p + seps[0]
+        if text:
+            texts.extend(text_segmentate(text, maxlen, seps[1:], strips, truncate))
+        return texts
+    elif truncate and (not seps) and (len(text) > maxlen):
+        # 标点符号用完，仍然超长，且设置了truncate=True
+        return [text[i*maxlen:(i+1)*maxlen] for i in range(0, int(np.ceil(len(text)/maxlen)))]
+    else:
+        return [text]
 

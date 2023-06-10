@@ -6,6 +6,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from common import seed_everything
 from tokenizers import Tokenizer
+from snippets import ListDataset, text_segmentate
+
 
 maxlen = 256
 batch_size = 16
